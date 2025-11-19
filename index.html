@@ -3,66 +3,67 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SW2.5 ダイスツール（大きめ UI）</title>
+  <title>SW2.5 ダイスツール — UI プリセット</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="container">
-    <h1>ソード・ワールド2.5 ダイスツール（大きめ UI）</h1>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button id="menu-btn" class="icon-btn" aria-label="メニュー">☰</button>
+      <div class="brand">SW2.5 Dice</div>
+      <div class="top-right"></div>
+    </div>
+  </header>
 
-    <section class="panel">
-      <h2>2d6 固定ダイス</h2>
-      <div class="controls">
-        <button id="btn-2d6" class="big">2d6</button>
+  <main class="page">
+    <!-- 左カラム：コントロール -->
+    <section class="card left-card" aria-labelledby="preset-title">
+      <h2 id="preset-title" class="card-title">プリセット</h2>
+
+      <div id="preset-grid" class="preset-grid" aria-hidden="false">
+        <!-- 動的にボタンを生成 -->
       </div>
+
+      <div class="pager-row" id="mod-page-nav" aria-label="修正値ページナビ"></div>
+
+      <h3 class="subhead">1dN セレクト</h3>
+      <div class="row control-row">
+        <select id="dropdown-d" class="select-large" aria-label="1dN 選択"></select>
+        <button id="btn-roll-dropdown" class="btn-square btn-blue" aria-label="1dN を振る">振る</button>
+      </div>
+
+      <h3 class="subhead">カスタムダイス</h3>
+      <div class="row control-row">
+        <input id="custom-input" class="input-large" placeholder="例: 2d6+3, d20, -1d6+2" aria-label="カスタムダイス" />
+        <button id="btn-roll-custom" class="btn-square btn-blue" aria-label="カスタムダイスを振る">振る</button>
+      </div>
+
+      <p class="hint">フォーマット: NdS±M (Nは省略可、Sは必須。複数式はカンマ区切り)</p>
     </section>
 
-    <section class="panel">
-      <h2>2d6 + 修正値（ページ切替）</h2>
-      <p class="muted-note">修正値ボタンはページごとに表示されています。ページを切り替えて目的の修正値を選んでください。</p>
-      <div id="mod-groups-container" class="mod-groups-container">
-        <div id="mod-groups" class="mod-groups"></div>
-        <div id="mod-page-nav" class="pager" aria-label="修正値ページナビ"></div>
+    <!-- 右カラム：ログ -->
+    <aside class="card right-card" aria-labelledby="log-title">
+      <div class="card-head">
+        <h2 id="log-title" class="card-title">ログ</h2>
+        <button id="btn-clear-log" class="btn-clear" aria-label="ログ全削除">全削除</button>
       </div>
-    </section>
 
-    <section class="panel">
-      <h2>1d1 ～ 1d100 プルダウン</h2>
-      <div class="controls">
-        <select id="dropdown-d"></select>
-        <button id="btn-roll-dropdown" class="large">振る</button>
-      </div>
-    </section>
+      <ul id="log-list" class="log-list" aria-live="polite">
+        <!-- ログ項目をここに追加 -->
+      </ul>
 
-    <section class="panel">
-      <h2>カスタムダイス（NdM + K）</h2>
-      <div class="controls custom">
-        <label>N: <input type="number" id="custom-n" value="1" min="1" /></label>
-        <label>M: <input type="number" id="custom-m" value="6" min="1" /></label>
-        <label>+K: <input type="number" id="custom-k" value="0" /></label>
-        <button id="btn-roll-custom" class="large">振る</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>ログ</h2>
-      <div class="log-controls">
-        <button id="btn-clear-log" class="danger large">ログを全削除</button>
-      </div>
-      <ul id="log-list" class="log-list"></ul>
       <div class="legend">
-        <strong>凡例:</strong>
-        <span class="badge crit">大成功 (12)</span>
-        <span class="badge fumble">ファンブル (2)</span>
-        <span class="badge double">ダブル（同目）</span>
-        <span class="badge streak">連続</span>
+        <span class="legend-item badge crit">大成功 (12)</span>
+        <span class="legend-item badge fumble">ファンブル (2)</span>
+        <span class="legend-item badge double">ダブル</span>
+        <span class="legend-item badge streak">連続</span>
       </div>
-    </section>
-
-    <footer class="credits">
-      <small>2d6: 大成功(12)、ファンブル(2)、ダブル（同目）、連続表示。ボタンを大きくして操作しやすくしました。</small>
-    </footer>
+    </aside>
   </main>
+
+  <footer class="footer">
+    <small>オフライン対応 PWA に対応できます。SHUU-123 用カスタム UI。</small>
+  </footer>
 
   <script src="app.js"></script>
 </body>
