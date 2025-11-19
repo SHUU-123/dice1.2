@@ -2,38 +2,52 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <!-- モバイルでのダブルタップ拡大を抑制 -->
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+  <!-- iOS の入力フォーカス時ズーム抑制とダブルタップ拡大防止を両立 -->
+  <!-- maximum-scale=1, user-scalable=no を維持 -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
   <title>SW2.5 ダイスツール</title>
   <meta name="description" content="SW2.5 ダイスツール（2d6 + 修正値、1dN、カスタム、ログ）">
+
+  <!-- CSS 読み込み -->
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- Safari Smart App Banner などは不要なので追加なし -->
 </head>
+
 <body>
   <main class="container">
+
     <header class="topbar" role="banner">
       <div class="brand">SW2.5 ダイス</div>
     </header>
 
     <div class="layout" role="main">
+
       <!-- 左カラム：プリセット / 操作 -->
       <section class="card left" aria-labelledby="preset-title">
         <h2 id="preset-title" class="section-title">プリセット</h2>
 
-        <div id="preset-grid" class="preset-grid" aria-hidden="false">
-          <!-- ボタンは app.js が生成します -->
-        </div>
+        <!-- ボタンは app.js で生成 -->
+        <div id="preset-grid" class="preset-grid" aria-live="polite"></div>
 
         <div id="mod-page-nav" class="pager" aria-label="修正値ページナビ"></div>
 
         <h3 class="label">1dN セレクト</h3>
         <div class="row">
+          <!-- input, select は iOS 拡大抑制のため font-size>=16px が必要（CSS で適用済） -->
           <select id="dropdown-d" class="select" aria-label="1dN選択"></select>
           <button id="btn-roll-dropdown" class="btn-blue" type="button">振る</button>
         </div>
 
         <h3 class="label">カスタムダイス</h3>
         <div class="row">
-          <input id="custom-input" class="input" placeholder="例: 2d6+3, d20, -1d6+2" aria-label="カスタムダイス" />
+          <input id="custom-input" class="input"
+                 inputmode="text"
+                 placeholder="例: 2d6+3, d20, -1d6+2"
+                 aria-label="カスタムダイス式入力" />
           <button id="btn-roll-custom" class="btn-blue" type="button">振る</button>
         </div>
 
@@ -47,11 +61,10 @@
           <button id="btn-clear-log" class="btn-clear" type="button">全削除</button>
         </div>
 
-        <ul id="log-list" class="log-list" aria-live="polite">
-          <!-- ログは app.js によってここに追加されます -->
-        </ul>
+        <!-- ログは app.js によってここに追加 -->
+        <ul id="log-list" class="log-list" aria-live="polite"></ul>
 
-        <div class="legend" aria-hidden="false">
+        <div class="legend">
           <span class="legend-item badge crit">大成功 (12)</span>
           <span class="legend-item badge fumble">ファンブル (2)</span>
           <span class="legend-item badge streak">連続</span>
@@ -62,9 +75,11 @@
     <footer class="footer" role="contentinfo">
       <small>オフライン PWA 対応可 — カスタム UI</small>
     </footer>
+
   </main>
 
   <script src="app.js" defer></script>
+
   <noscript>
     JavaScript が無効になっています。ダイスツールを使うにはブラウザで JavaScript を有効にしてください。
   </noscript>
