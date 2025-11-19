@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SW2.5 ダイスツール（2d6 ページ分割 修正版）</title>
+  <title>SW2.5 ダイスツール（大きめ UI）</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="container">
-    <h1>ソード・ワールド2.5 ダイスツール（2d6 ページ分割 修正版）</h1>
+    <h1>ソード・ワールド2.5 ダイスツール（大きめ UI）</h1>
 
     <section class="panel">
       <h2>2d6 固定ダイス</h2>
@@ -30,7 +30,7 @@
       <h2>1d1 ～ 1d100 プルダウン</h2>
       <div class="controls">
         <select id="dropdown-d"></select>
-        <button id="btn-roll-dropdown">振る</button>
+        <button id="btn-roll-dropdown" class="large">振る</button>
       </div>
     </section>
 
@@ -40,14 +40,14 @@
         <label>N: <input type="number" id="custom-n" value="1" min="1" /></label>
         <label>M: <input type="number" id="custom-m" value="6" min="1" /></label>
         <label>+K: <input type="number" id="custom-k" value="0" /></label>
-        <button id="btn-roll-custom">振る</button>
+        <button id="btn-roll-custom" class="large">振る</button>
       </div>
     </section>
 
     <section class="panel">
       <h2>ログ</h2>
       <div class="log-controls">
-        <button id="btn-clear-log" class="danger">ログを全削除</button>
+        <button id="btn-clear-log" class="danger large">ログを全削除</button>
       </div>
       <ul id="log-list" class="log-list"></ul>
       <div class="legend">
@@ -60,7 +60,7 @@
     </section>
 
     <footer class="credits">
-      <small>2d6: 大成功(12)、ファンブル(2)、ダブル（同目）、連続表示。修正値ボタンはページ分割されています。</small>
+      <small>2d6: 大成功(12)、ファンブル(2)、ダブル（同目）、連続表示。ボタンを大きくして操作しやすくしました。</small>
     </footer>
   </main>
 
