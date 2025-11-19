@@ -71,7 +71,7 @@
 
       if(lg.type === '2d6'){
         left += `<div class="log-meta">`;
-        if(lg.rawTotal === 12) left += `<span class="badge crit">大成功</span>`;
+        if(lg.rawTotal === 12) left += `<span class="badge crit">クリティカル</span>`;
         else if(lg.rawTotal === 2) left += `<span class="badge fumble">ファンブル</span>`;
         if(lg.streak && lg.streak > 1) left += `<span class="badge streak">連続 ${lg.streak} 回</span>`;
         left += `</div>`;
