@@ -1,8 +1,6 @@
 // app.js
-// UIを画像(左プリセット + 右ログ)に戻したバージョン
-// 機能: 2d6 / 2d6+修正（ページ分割） / 1dN プルダウン / カスタムダイス / ログ(localStorage)
-// 2d6: 大成功(12), ファンブル(2), 連続表示（ダブル表記は表示しない）
-// 非2d6も個別出目を強調表示
+// 既存実装を維持しつつ、ログ内の合計表示を見やすく（.total-value 追加）
+// それ以外の挙動は変えていません。
 
 (function(){
   const el = id => document.getElementById(id);
@@ -52,7 +50,7 @@
     return html;
   }
 
-  // --- render logs ---
+  // --- render logs (ここで合計表示を強調) ---
   function renderLogs(){
     const list = el('log-list');
     list.innerHTML = '';
@@ -84,11 +82,15 @@
         if(lg.modifier) left += `<div class="expr-mod">+ ${escapeHtml(String(lg.modifier))}</div>`;
         left += `</div>`;
 
-        left += `<div class="log-meta">生合計: ${lg.rawTotal} — 最終合計: ${lg.total} — ${lg.time}</div>`;
+        // 強調された合計表示（目立つバッジ）
+        left += `<div class="total-value">合計 ${escapeHtml(String(lg.total))}</div>`;
+
+        left += `<div class="log-meta">生合計: ${lg.rawTotal} — ${lg.time}</div>`;
       } else {
         left += `<div class="log-meta">${escapeHtml(lg.time)}</div>`;
         left += rollsToHtml(lg.rolls);
-        left += `<div class="log-meta">合計: ${lg.total}</div>`;
+        // 非2d6 も合計を見やすく表示
+        left += `<div class="total-value">合計 ${escapeHtml(String(lg.total))}</div>`;
       }
 
       left += `</div>`;
