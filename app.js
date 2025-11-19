@@ -1,27 +1,26 @@
-// SW2.5 ダイスツール（2d6 ページ分割）
+// SW2.5 ダイスツール（2d6 ページ分割 修正版）
 // ログは localStorage に保存
 // 2d6: 大成功(12)、ファンブル(2)、ダブル（同目）、連続表示
-// 修正値ボタン群をページ分割（5ページ）で表示
+// 修正値ボタン群はページごとに動的レンダー（安定してページ分割を動かすため）
 
 const el = id => document.getElementById(id);
 
+// util
 function randInt(min, max){
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
 function rollNdM(n, m){
   const rolls = [];
   for(let i=0;i<n;i++) rolls.push(randInt(1,m));
   return rolls;
 }
-
-function addLog(entry){
-  const logs = getLogs();
-  logs.unshift(entry); // newest first
-  localStorage.setItem('sw25_logs', JSON.stringify(logs));
-  renderLogs();
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>{
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
 }
 
+// localStorage logs
 function getLogs(){
   try{
     return JSON.parse(localStorage.getItem('sw25_logs') || '[]');
@@ -29,41 +28,42 @@ function getLogs(){
     return [];
   }
 }
-
+function saveLogs(logs){
+  localStorage.setItem('sw25_logs', JSON.stringify(logs));
+}
+function addLog(entry){
+  const logs = getLogs();
+  logs.unshift(entry); // newest first
+  saveLogs(logs);
+  renderLogs();
+}
+function deleteLogAt(index){
+  const logs = getLogs();
+  logs.splice(index,1);
+  saveLogs(logs);
+  renderLogs();
+}
 function clearLogs(){
   localStorage.removeItem('sw25_logs');
   renderLogs();
 }
 
-function deleteLogAt(index){
-  const logs = getLogs();
-  logs.splice(index,1);
-  localStorage.setItem('sw25_logs', JSON.stringify(logs));
-  renderLogs();
-}
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, c=>{
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-  });
-}
-
-// computeStreakFor2d6: 直前ログから同じ rawTotal が連続している回数を数える。
-// 戻り値は「今回を含めた連続回数」。（例: 1=単発, 2=直前と同じ合計が1回続いている）
+// streak 計算：まだログに追加する前の rawTotal を与えて、直前ログ群から何回連続で出ているかを返す（今回を含めた回数を返す）
 function computeStreakFor2d6(rawTotal){
   const logs = getLogs(); // newest first
-  let streak = 1;
+  let count = 0;
   for(let i=0;i<logs.length;i++){
     const L = logs[i];
     if(L.type === '2d6' && (L.rawTotal === rawTotal)) {
-      streak++;
+      count++;
     } else {
       break;
     }
   }
-  return streak;
+  return count + 1; // 今回を含める
 }
 
+// ログ描画
 function renderLogs(){
   const list = el('log-list');
   list.innerHTML = '';
@@ -124,7 +124,7 @@ function renderLogs(){
   });
 }
 
-// --- ページ分割対応の修正値 UI ---
+// --- 修正値ページ定義 ---
 const modGroupsSpec = [
   { title: '+3〜+20', from: 3, to: 20 },
   { title: '+21〜+40', from: 21, to: 40 },
@@ -133,96 +133,110 @@ const modGroupsSpec = [
   { title: '+81〜+100', from: 81, to: 100 },
 ];
 let currentModPage = 0;
-let modGroupNodes = [];
 
-function buildModGroups(){
+// 動的レンダー：現在のページだけを描画する
+function renderModPage(){
   const container = el('mod-groups');
-  container.innerHTML = '';
-  modGroupNodes = [];
+  container.innerHTML = ''; // いったんクリア
 
-  modGroupsSpec.forEach((g, pageIndex) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'mod-page';
-    wrap.style.display = 'none'; // 非表示で先に作成
-    const title = document.createElement('div');
-    title.className = 'mod-group-title';
-    title.textContent = g.title;
-    wrap.appendChild(title);
+  const spec = modGroupsSpec[currentModPage];
+  const title = document.createElement('div');
+  title.className = 'mod-group-title';
+  title.textContent = spec.title;
+  container.appendChild(title);
 
-    const row = document.createElement('div');
-    row.className = 'mod-row';
-    for(let v = g.from; v <= g.to; v++){
-      const b = document.createElement('button');
-      b.className = 'mod-btn';
-      b.textContent = `+${v}`;
-      b.addEventListener('click', ()=>{
-        const rolls = rollNdM(2,6);
-        const raw = rolls[0] + rolls[1];
-        const total = raw + v;
-        const streak = computeStreakFor2d6(raw);
-        addLog({
-          expr: `2d6+${v}`,
-          type: '2d6',
-          rolls,
-          modifier: v,
-          rawTotal: raw,
-          total,
-          streak,
-          time: new Date().toLocaleString()
-        });
+  const row = document.createElement('div');
+  row.className = 'mod-row';
+  for(let v = spec.from; v <= spec.to; v++){
+    const b = document.createElement('button');
+    b.className = 'mod-btn';
+    b.textContent = `+${v}`;
+    b.addEventListener('click', () => {
+      const rolls = rollNdM(2,6);
+      const raw = rolls[0] + rolls[1];
+      const total = raw + v;
+      const streak = computeStreakFor2d6(raw);
+      addLog({
+        expr: `2d6+${v}`,
+        type: '2d6',
+        rolls,
+        modifier: v,
+        rawTotal: raw,
+        total,
+        streak,
+        time: new Date().toLocaleString()
       });
-      row.appendChild(b);
-    }
-    wrap.appendChild(row);
-    container.appendChild(wrap);
-    modGroupNodes.push(wrap);
-  });
-
-  buildModPager();
-  showModPage(0);
+    });
+    row.appendChild(b);
+  }
+  container.appendChild(row);
+  updateModPager();
 }
 
+// ページナビ構築 & 更新
 function buildModPager(){
   const nav = el('mod-page-nav');
   nav.innerHTML = '';
 
   const prev = document.createElement('button');
   prev.className = 'nav-arrow';
+  prev.id = 'mod-prev';
   prev.textContent = '◀';
   prev.title = '前のページ';
-  prev.addEventListener('click', () => showModPage(currentModPage - 1));
+  prev.addEventListener('click', () => {
+    if(currentModPage > 0){
+      currentModPage--;
+      renderModPage();
+    }
+  });
   nav.appendChild(prev);
 
   modGroupsSpec.forEach((g, i) => {
     const btn = document.createElement('button');
     btn.textContent = `${i+1}`;
     btn.title = g.title;
-    btn.addEventListener('click', () => showModPage(i));
     btn.dataset.page = i;
+    btn.addEventListener('click', () => {
+      currentModPage = i;
+      renderModPage();
+    });
     nav.appendChild(btn);
   });
 
   const next = document.createElement('button');
   next.className = 'nav-arrow';
+  next.id = 'mod-next';
   next.textContent = '▶';
   next.title = '次のページ';
-  next.addEventListener('click', () => showModPage(currentModPage + 1));
+  next.addEventListener('click', () => {
+    if(currentModPage < modGroupsSpec.length - 1){
+      currentModPage++;
+      renderModPage();
+    }
+  });
   nav.appendChild(next);
+
+  updateModPager();
 }
 
-function showModPage(index){
-  if(index < 0) index = 0;
-  if(index >= modGroupNodes.length) index = modGroupNodes.length - 1;
-  currentModPage = index;
-  modGroupNodes.forEach((node, i) => {
-    node.style.display = (i === index) ? 'block' : 'none';
-  });
-  // ページナビのアクティブ表示更新
+// ページナビの見た目更新（active / disabled）
+function updateModPager(){
   const nav = el('mod-page-nav');
+  if(!nav) return;
+  const prev = el('mod-prev');
+  const next = el('mod-next');
+
+  // enable/disable prev next
+  prev.disabled = (currentModPage <= 0);
+  next.disabled = (currentModPage >= modGroupsSpec.length - 1);
+
+  // active class for numbered buttons
   Array.from(nav.querySelectorAll('button')).forEach(btn => {
     const p = btn.dataset.page;
     if(typeof p !== 'undefined'){
-      btn.classList.toggle('active', Number(p) === index);
+      btn.classList.toggle('active', Number(p) === currentModPage);
+    } else {
+      // prev/next have no dataset.page - do nothing
     }
   });
 }
@@ -248,7 +262,8 @@ function init(){
   });
 
   // 修正値群（ページ分割で構築）
-  buildModGroups();
+  buildModPager();
+  renderModPage();
 
   // ドロップダウン 1d1～1d100
   const dropdown = el('dropdown-d');
