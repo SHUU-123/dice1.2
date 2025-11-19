@@ -4,52 +4,53 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>SW2.5 ダイスツール</title>
+  <meta name="description" content="SW2.5 ダイスツール（2d6 + 修正値、1dN、カスタム、ログ）">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="container">
-    <header class="topbar">
+    <header class="topbar" role="banner">
       <div class="brand">SW2.5 ダイス</div>
     </header>
 
-    <div class="layout">
+    <div class="layout" role="main">
       <!-- 左カラム：プリセット / 操作 -->
-      <section class="card left">
-        <h2 class="section-title">プリセット</h2>
+      <section class="card left" aria-labelledby="preset-title">
+        <h2 id="preset-title" class="section-title">プリセット</h2>
 
         <div id="preset-grid" class="preset-grid" aria-hidden="false">
-          <!-- ボタンは app.js が生成 -->
+          <!-- ボタンは app.js が生成します -->
         </div>
 
-        <div id="mod-page-nav" class="pager"></div>
+        <div id="mod-page-nav" class="pager" aria-label="修正値ページナビ"></div>
 
         <h3 class="label">1dN セレクト</h3>
         <div class="row">
-          <select id="dropdown-d" class="select"></select>
-          <button id="btn-roll-dropdown" class="btn-blue">振る</button>
+          <select id="dropdown-d" class="select" aria-label="1dN選択"></select>
+          <button id="btn-roll-dropdown" class="btn-blue" type="button">振る</button>
         </div>
 
         <h3 class="label">カスタムダイス</h3>
         <div class="row">
-          <input id="custom-input" class="input" placeholder="例: 2d6+3, d20, -1d6+2" />
-          <button id="btn-roll-custom" class="btn-blue">振る</button>
+          <input id="custom-input" class="input" placeholder="例: 2d6+3, d20, -1d6+2" aria-label="カスタムダイス" />
+          <button id="btn-roll-custom" class="btn-blue" type="button">振る</button>
         </div>
 
         <p class="hint">フォーマット: NdS±M (Nは省略可、Sは必須。複数式はカンマ区切り)</p>
       </section>
 
       <!-- 右カラム：ログ -->
-      <aside class="card right">
+      <aside class="card right" aria-labelledby="log-title">
         <div class="card-header">
-          <h2 class="section-title">ログ</h2>
-          <button id="btn-clear-log" class="btn-clear">全削除</button>
+          <h2 id="log-title" class="section-title">ログ</h2>
+          <button id="btn-clear-log" class="btn-clear" type="button">全削除</button>
         </div>
 
         <ul id="log-list" class="log-list" aria-live="polite">
-          <!-- ログはここに追加 -->
+          <!-- ログは app.js によってここに追加されます -->
         </ul>
 
-        <div class="legend">
+        <div class="legend" aria-hidden="false">
           <span class="legend-item badge crit">大成功 (12)</span>
           <span class="legend-item badge fumble">ファンブル (2)</span>
           <span class="legend-item badge streak">連続</span>
@@ -57,11 +58,15 @@
       </aside>
     </div>
 
-    <footer class="footer">
+    <footer class="footer" role="contentinfo">
       <small>オフライン PWA 対応可 — カスタム UI</small>
     </footer>
   </main>
 
-  <script src="app.js"></script>
+  <!-- app.js は DOMContentLoaded を使っていますが defer を付けて安全に読み込み -->
+  <script src="app.js" defer></script>
+  <noscript>
+    JavaScript が無効になっています。ダイスツールを使うにはブラウザで JavaScript を有効にしてください。
+  </noscript>
 </body>
 </html>
