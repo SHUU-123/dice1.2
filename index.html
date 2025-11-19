@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SW2.5 ダイスツール（2d6拡張）</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>ソード・ワールド2.5 ダイスツール（2d6 拡張）</h1>
+
+    <section class="panel">
+      <h2>2d6 固定ダイス</h2>
+      <div class="controls">
+        <button id="btn-2d6" class="big">2d6</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>2d6 + 修正値ボタン（+3 ～ +100）</h2>
+      <div id="mod-groups" class="mod-groups"></div>
+    </section>
+
+    <section class="panel">
+      <h2>1d1 ～ 1d100 プルダウン</h2>
+      <div class="controls">
+        <select id="dropdown-d"></select>
+        <button id="btn-roll-dropdown">振る</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>カスタムダイス（NdM + K）</h2>
+      <div class="controls custom">
+        <label>N: <input type="number" id="custom-n" value="1" min="1" /></label>
+        <label>M: <input type="number" id="custom-m" value="6" min="1" /></label>
+        <label>+K: <input type="number" id="custom-k" value="0" /></label>
+        <button id="btn-roll-custom">振る</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>ログ</h2>
+      <div class="log-controls">
+        <button id="btn-clear-log" class="danger">ログを全削除</button>
+      </div>
+      <ul id="log-list" class="log-list"></ul>
+      <div class="legend">
+        <strong>凡例:</strong>
+        <span class="badge crit">大成功 (12)</span>
+        <span class="badge fumble">ファンブル (2)</span>
+        <span class="badge double">ダブル（同目）</span>
+        <span class="badge streak">連続</span>
+      </div>
+    </section>
+
+    <footer class="credits">
+      <small>2d6 に関する表示を拡張しました：大成功(12)、ファンブル(2)、ダブル(同目)、連続した同じ合計の検出を表示します。</small>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
