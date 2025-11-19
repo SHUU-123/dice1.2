@@ -85,5 +85,11 @@
   <noscript>
     JavaScript が無効になっています。ダイスツールを使うにはブラウザで JavaScript を有効にしてください。
   </noscript>
+
+  <script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/dice1.2/service-worker.js");
+}
+</script>
 </body>
 </html>
