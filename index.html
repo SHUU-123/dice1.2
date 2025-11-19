@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- モバイルでのダブルタップ拡大を抑制 -->
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>SW2.5 ダイスツール</title>
   <meta name="description" content="SW2.5 ダイスツール（2d6 + 修正値、1dN、カスタム、ログ）">
   <link rel="stylesheet" href="styles.css" />
@@ -63,7 +64,6 @@
     </footer>
   </main>
 
-  <!-- app.js は DOMContentLoaded を使っていますが defer を付けて安全に読み込み -->
   <script src="app.js" defer></script>
   <noscript>
     JavaScript が無効になっています。ダイスツールを使うにはブラウザで JavaScript を有効にしてください。
