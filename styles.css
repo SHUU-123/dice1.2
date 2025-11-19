@@ -1,3 +1,6 @@
+/* 既存 styles.css に最小限の変更を加え、合計表示とタップズーム抑制関連を追加 */
+
+/* base variables */
 :root{
   --bg: #f4f7fb;
   --card: #ffffff;
@@ -20,6 +23,7 @@ body{
   background: linear-gradient(180deg,#f6f8fc 0%, #f3f6fb 100%);
   color:var(--navy);
   -webkit-font-smoothing:antialiased;
+  -webkit-text-size-adjust:100%;
 }
 
 /* container */
@@ -59,7 +63,7 @@ body{
 /* headings */
 .section-title{margin:0 0 14px 0;font-size:18px;font-weight:800;color:var(--dark-navy);}
 
-/* preset grid (image-like styling) */
+/* preset grid */
 .preset-grid{
   display:grid;
   grid-template-columns: repeat(4, minmax(0,1fr));
@@ -81,14 +85,18 @@ body{
   box-shadow: 0 8px 20px rgba(2,6,23,0.12);
   transition: transform .06s ease;
   outline:none;
+  /* タップ操作のための指定 */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0,0,0,0.05);
 }
 .preset-btn:active{transform: translateY(2px)}
 .preset-btn.placeholder{background:transparent;box-shadow:none;}
 
-/* pager (small and subtle under presets) */
+/* pager */
 .pager{display:flex;gap:8px;margin-bottom:12px;align-items:center}
 .page-btn{
   padding:8px 12px;border-radius:10px;border:1px solid rgba(43,124,255,0.12);background:transparent;color:var(--accent);font-weight:700;cursor:pointer;
+  touch-action: manipulation;
 }
 .page-btn.active{background:var(--accent);color:white;box-shadow:0 8px 18px rgba(43,124,255,0.12)}
 .page-nav{background:transparent;border:none;color:var(--muted);font-weight:700}
@@ -103,9 +111,10 @@ body{
   border:1px solid rgba(14,23,36,0.06);
   padding:10px 14px;
   background:#fbfdff;
-  font-size:15px;
+  font-size:16px; /* 16px以上でiOSの自動拡大を抑制 */
   color:var(--dark-navy);
   outline:none;
+  touch-action: manipulation;
 }
 .btn-blue{
   width:72px;
@@ -117,6 +126,8 @@ body{
   font-weight:800;
   cursor:pointer;
   box-shadow:0 8px 18px rgba(43,124,255,0.12);
+  font-size:16px; /* 16px以上を確保 */
+  touch-action: manipulation;
 }
 
 /* log card */
@@ -124,6 +135,7 @@ body{
 .btn-clear{
   background:linear-gradient(90deg,var(--orange),#ff6f2a);
   color:white;border:none;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800;
+  touch-action: manipulation;
 }
 .log-list{
   list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;overflow:auto;
@@ -136,7 +148,7 @@ body{
 .log-left strong{display:block;font-weight:800;margin-bottom:8px}
 .log-meta{color:var(--muted);font-size:13px;margin-top:6px}
 .log-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
-.log-del{background:transparent;border:1px solid rgba(13,23,36,0.06);padding:8px 10px;border-radius:10px;cursor:pointer;color:var(--accent);font-weight:700}
+.log-del{background:transparent;border:1px solid rgba(13,23,36,0.06);padding:8px 10px;border-radius:10px;cursor:pointer;color:var(--accent);font-weight:700; touch-action: manipulation;}
 
 /* dice */
 .dice{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
@@ -146,6 +158,19 @@ body{
 }
 .expr-mod{
   color:var(--muted);font-weight:800;padding:6px 10px;border-radius:8px;border:1px dashed rgba(14,23,36,0.04);
+}
+
+/* ---- 合計を見やすくするためのスタイル ---- */
+.total-value{
+  display:inline-block;
+  margin-top:10px;
+  background: linear-gradient(90deg,#ffb86b,#ff8a3d);
+  color: #04121a;
+  font-weight:900;
+  padding:8px 12px;
+  border-radius:12px;
+  font-size:18px;
+  box-shadow: 0 8px 20px rgba(255,138,61,0.12);
 }
 
 /* badges */
