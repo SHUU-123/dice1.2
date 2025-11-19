@@ -1,8 +1,4 @@
-// app.js
-// SW2.5 ダイスツール — UI を画像イメージに合わせたレイアウトで実装
-// 機能: 2d6 / 2d6+修正（ページ分割） / 1dN プルダウン / カスタムダイス / ログ（localStorage）
-// 2d6 系: 大成功(12), ファンブル(2), ダブル（同目）、連続表示
-
+// app.js (修正版: 2d6以外も個別出目を強調表示)
 (function(){
   const el = id => document.getElementById(id);
 
@@ -25,7 +21,6 @@
   function clearLogs(){ localStorage.removeItem(STORAGE_KEY); renderLogs(); }
 
   // ----- streak (連続判定) -----
-  // rawTotal を与えると、直前ログから同じ rawTotal の連続回数をカウントして「今回を含めた回数」を返す
   function computeStreakFor2d6(rawTotal){
     const logs = getLogs();
     let cnt = 0;
@@ -37,7 +32,25 @@
     return cnt + 1;
   }
 
-  // ----- rendering logs -----
+  // ----- helper: ロール配列を HTML 化 -----
+  // rolls: 配列。数値または文字列を混在させていることを想定。
+  function rollsToHtml(rolls){
+    // 例: [3,5,"(+3)"] -> <div class="dice"><div class="die">3</div>...<div class="expr-mod">(+3)</div></div>
+    let html = '<div class="dice">';
+    for(const r of rolls){
+      if(typeof r === 'number' || (!isNaN(Number(r)) && String(r).trim() !== '')){
+        // 数値に見えるものは die として強調
+        html += `<div class="die">${escapeHtml(String(r))}</div>`;
+      } else {
+        // 数字でないものは修正値などの補助表記
+        html += `<div class="expr-mod">${escapeHtml(String(r))}</div>`;
+      }
+    }
+    html += '</div>';
+    return html;
+  }
+
+  // ----- rendering logs (ダブル表記なし、非2d6でも出目強調) -----
   function renderLogs(){
     const list = el('log-list');
     list.innerHTML = '';
@@ -54,27 +67,34 @@
       const li = document.createElement('li');
       li.className = 'log-item';
 
+      // 左カラム（式・メタ）
       let leftHtml = `<div class="log-left"><strong>${escapeHtml(lg.expr)}</strong>`;
+
       if(lg.type === '2d6'){
         const d1 = lg.rolls[0], d2 = lg.rolls[1];
         leftHtml += `<div class="log-meta">`;
         if(lg.rawTotal === 12) leftHtml += `<span class="badge crit">大成功</span>`;
         else if(lg.rawTotal === 2) leftHtml += `<span class="badge fumble">ファンブル</span>`;
-        if(d1 === d2) leftHtml += `<span class="badge double">ダブル</span>`;
         if(lg.streak && lg.streak > 1) leftHtml += `<span class="badge streak">連続 ${lg.streak} 回</span>`;
         leftHtml += `</div>`;
 
+        // 2d6 の出目表示（従来の見た目）
         leftHtml += `<div class="dice">`;
-        leftHtml += `<div class="die ${d1===d2?'double':''}">${d1}</div>`;
-        leftHtml += `<div class="die ${d1===d2?'double':''}">${d2}</div>`;
-        if(lg.modifier) leftHtml += `<div class="expr-mod">+ ${lg.modifier}</div>`;
+        leftHtml += `<div class="die">${escapeHtml(String(d1))}</div>`;
+        leftHtml += `<div class="die">${escapeHtml(String(d2))}</div>`;
+        if(lg.modifier) leftHtml += `<div class="expr-mod">+ ${escapeHtml(String(lg.modifier))}</div>`;
         leftHtml += `</div>`;
+
         leftHtml += `<div class="log-meta">生合計: ${lg.rawTotal} — 最終合計: ${lg.total} — ${lg.time}</div>`;
       } else {
-        leftHtml += `<div class="log-meta">${lg.time} — 個別: ${lg.rolls.join(', ')} — 合計: ${lg.total}</div>`;
+        // 非2d6（1dN やカスタム）：個別ダイスを強調表示する
+        // lg.rolls は配列。中には数値や "(+3)" のような文字列が混ざることがある。
+        leftHtml += `<div class="log-meta">${escapeHtml(lg.time)}</div>`;
+        leftHtml += rollsToHtml(lg.rolls);
+        leftHtml += `<div class="log-meta">合計: ${lg.total}</div>`;
       }
 
-      leftHtml += `</div>`;
+      leftHtml += `</div>`; // .log-left close
 
       const rightHtml = `<div class="log-right"><button class="log-del" data-idx="${idx}">削除</button></div>`;
 
@@ -82,7 +102,6 @@
       list.appendChild(li);
     });
 
-    // attach delete handlers
     Array.from(list.querySelectorAll('.log-del')).forEach(btn=>{
       btn.addEventListener('click', e=>{
         const i = Number(btn.dataset.idx);
@@ -101,23 +120,18 @@
   ];
   let currentModPage = 0;
 
-  // render current mod page (preset buttons)
+  // render current mod page: 各ページに 2d6 を先頭に表示する
   function renderModPage(){
     const grid = el('preset-grid');
     grid.innerHTML = '';
     const spec = modGroupsSpec[currentModPage];
 
-    // create preset 2d6 (no modifier) on first slot if page 0
-    if(currentModPage === 0){
-      const btn = document.createElement('button');
-      btn.className = 'preset-btn';
-      btn.textContent = '2d6';
-      btn.addEventListener('click', ()=>roll2d6(0));
-      grid.appendChild(btn);
-    } else {
-      // keep a placeholder to keep layout consistent
-      const ph = document.createElement('div'); ph.style.height='0'; grid.appendChild(ph);
-    }
+    // どのページでも 2d6 ボタンを先頭に表示
+    const btn2d6 = document.createElement('button');
+    btn2d6.className = 'preset-btn';
+    btn2d6.textContent = '2d6';
+    btn2d6.addEventListener('click', ()=>roll2d6(0));
+    grid.appendChild(btn2d6);
 
     // create modifiers in the page's range
     for(let v = spec.from; v <= spec.to; v++){
@@ -162,7 +176,6 @@
       const n = Number(btn.textContent)-1;
       btn.classList.toggle('active', n === currentModPage);
     });
-    // prev/next disabled state:
     const allNav = nav.querySelectorAll('.page-nav');
     if(allNav.length >= 2){
       const [prev,next] = allNav;
@@ -205,14 +218,11 @@
   }
 
   // parse simple custom expressions (support multiple comma separated)
-  // format examples: "2d6+3", "d20", "-1d6+2", "d6-1"
   function parseAndRollCustom(text){
     if(!text || !text.trim()) return;
     const parts = text.split(',').map(s=>s.trim()).filter(Boolean);
     for(const p of parts){
       try{
-        // capture signs and numbers
-        // pattern: optional sign+N (repeat count) d S (sides) optional +/- modifier
         const m = p.match(/^([+-]?\d*)d(\d+)([+-]\d+)?$/i);
         if(m){
           let n = m[1] === '' ? 1 : Number(m[1]);
@@ -222,25 +232,27 @@
           const rolls = rollNdM(Math.abs(n), sides);
           const sum = rolls.reduce((a,b)=>a+b,0) * (n<0?-1:1);
           const total = sum + mod;
+          // 表示のため、修正値は文字列 "(+m)" の形で rolls 配列に追加
+          const displayRolls = rolls.slice();
+          if(mod !== 0) displayRolls.push((mod>0?'+':'') + String(mod));
           addLog({
             expr: p,
             type: 'other',
-            rolls: rolls.concat(mod? [`(${mod>=0?'+':'-'}${Math.abs(mod)})`]:[]),
+            rolls: displayRolls,
             total,
             time: nowStr()
           });
         } else {
-          // fallback: try single number like "20" => 1d20
           const m2 = p.match(/^d?(\d+)$/i);
           if(m2){
             const sides = Number(m2[1]);
             roll1dN(sides);
           } else {
-            // unsupported format - show as plain text log
+            // 解析できない形式はそのままログに残す（出目強調はしない）
             addLog({
               expr: p,
               type: 'other',
-              rolls: ['?'],
+              rolls: [p],
               total: 0,
               time: nowStr()
             });
