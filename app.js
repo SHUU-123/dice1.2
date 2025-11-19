@@ -1,7 +1,7 @@
-// SW2.5 ダイスツール（2d6 ページ分割 修正版）
+// SW2.5 ダイスツール（大きめ UI）
 // ログは localStorage に保存
 // 2d6: 大成功(12)、ファンブル(2)、ダブル（同目）、連続表示
-// 修正値ボタン群はページごとに動的レンダー（安定してページ分割を動かすため）
+// 修正値ボタン群はページごとに動的レンダー
 
 const el = id => document.getElementById(id);
 
@@ -48,7 +48,7 @@ function clearLogs(){
   renderLogs();
 }
 
-// streak 計算：まだログに追加する前の rawTotal を与えて、直前ログ群から何回連続で出ているかを返す（今回を含めた回数を返す）
+// compute streak for 2d6 (count previous consecutive same rawTotal, then include current)
 function computeStreakFor2d6(rawTotal){
   const logs = getLogs(); // newest first
   let count = 0;
@@ -60,10 +60,10 @@ function computeStreakFor2d6(rawTotal){
       break;
     }
   }
-  return count + 1; // 今回を含める
+  return count + 1;
 }
 
-// ログ描画
+// render logs
 function renderLogs(){
   const list = el('log-list');
   list.innerHTML = '';
@@ -134,10 +134,10 @@ const modGroupsSpec = [
 ];
 let currentModPage = 0;
 
-// 動的レンダー：現在のページだけを描画する
+// render current mod page (dynamic)
 function renderModPage(){
   const container = el('mod-groups');
-  container.innerHTML = ''; // いったんクリア
+  container.innerHTML = '';
 
   const spec = modGroupsSpec[currentModPage];
   const title = document.createElement('div');
@@ -173,7 +173,7 @@ function renderModPage(){
   updateModPager();
 }
 
-// ページナビ構築 & 更新
+// build pager
 function buildModPager(){
   const nav = el('mod-page-nav');
   nav.innerHTML = '';
@@ -219,29 +219,24 @@ function buildModPager(){
   updateModPager();
 }
 
-// ページナビの見た目更新（active / disabled）
 function updateModPager(){
   const nav = el('mod-page-nav');
   if(!nav) return;
   const prev = el('mod-prev');
   const next = el('mod-next');
 
-  // enable/disable prev next
   prev.disabled = (currentModPage <= 0);
   next.disabled = (currentModPage >= modGroupsSpec.length - 1);
 
-  // active class for numbered buttons
   Array.from(nav.querySelectorAll('button')).forEach(btn => {
     const p = btn.dataset.page;
     if(typeof p !== 'undefined'){
       btn.classList.toggle('active', Number(p) === currentModPage);
-    } else {
-      // prev/next have no dataset.page - do nothing
     }
   });
 }
 
-// --- UI 初期化 ---
+// init UI
 function init(){
   // 2d6 ボタン
   el('btn-2d6').addEventListener('click', ()=>{
@@ -261,7 +256,7 @@ function init(){
     addLog(entry);
   });
 
-  // 修正値群（ページ分割で構築）
+  // 修正値群
   buildModPager();
   renderModPage();
 
