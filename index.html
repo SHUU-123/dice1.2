@@ -3,66 +3,64 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SW2.5 ダイスツール — UI プリセット</title>
+  <title>SW2.5 ダイスツール</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <button id="menu-btn" class="icon-btn" aria-label="メニュー">☰</button>
-      <div class="brand">SW2.5 Dice</div>
-      <div class="top-right"></div>
+  <main class="container">
+    <header class="topbar">
+      <div class="brand">SW2.5 ダイス</div>
+    </header>
+
+    <div class="layout">
+      <!-- 左カラム：プリセット / 操作 -->
+      <section class="card left">
+        <h2 class="section-title">プリセット</h2>
+
+        <div id="preset-grid" class="preset-grid" aria-hidden="false">
+          <!-- ボタンは app.js が生成 -->
+        </div>
+
+        <div id="mod-page-nav" class="pager"></div>
+
+        <h3 class="label">1dN セレクト</h3>
+        <div class="row">
+          <select id="dropdown-d" class="select"></select>
+          <button id="btn-roll-dropdown" class="btn-blue">振る</button>
+        </div>
+
+        <h3 class="label">カスタムダイス</h3>
+        <div class="row">
+          <input id="custom-input" class="input" placeholder="例: 2d6+3, d20, -1d6+2" />
+          <button id="btn-roll-custom" class="btn-blue">振る</button>
+        </div>
+
+        <p class="hint">フォーマット: NdS±M (Nは省略可、Sは必須。複数式はカンマ区切り)</p>
+      </section>
+
+      <!-- 右カラム：ログ -->
+      <aside class="card right">
+        <div class="card-header">
+          <h2 class="section-title">ログ</h2>
+          <button id="btn-clear-log" class="btn-clear">全削除</button>
+        </div>
+
+        <ul id="log-list" class="log-list" aria-live="polite">
+          <!-- ログはここに追加 -->
+        </ul>
+
+        <div class="legend">
+          <span class="legend-item badge crit">大成功 (12)</span>
+          <span class="legend-item badge fumble">ファンブル (2)</span>
+          <span class="legend-item badge streak">連続</span>
+        </div>
+      </aside>
     </div>
-  </header>
 
-  <main class="page">
-    <!-- 左カラム：コントロール -->
-    <section class="card left-card" aria-labelledby="preset-title">
-      <h2 id="preset-title" class="card-title">プリセット</h2>
-
-      <div id="preset-grid" class="preset-grid" aria-hidden="false">
-        <!-- 動的にボタンを生成 -->
-      </div>
-
-      <div class="pager-row" id="mod-page-nav" aria-label="修正値ページナビ"></div>
-
-      <h3 class="subhead">1dN セレクト</h3>
-      <div class="row control-row">
-        <select id="dropdown-d" class="select-large" aria-label="1dN 選択"></select>
-        <button id="btn-roll-dropdown" class="btn-square btn-blue" aria-label="1dN を振る">振る</button>
-      </div>
-
-      <h3 class="subhead">カスタムダイス</h3>
-      <div class="row control-row">
-        <input id="custom-input" class="input-large" placeholder="例: 2d6+3, d20, -1d6+2" aria-label="カスタムダイス" />
-        <button id="btn-roll-custom" class="btn-square btn-blue" aria-label="カスタムダイスを振る">振る</button>
-      </div>
-
-      <p class="hint">フォーマット: NdS±M (Nは省略可、Sは必須。複数式はカンマ区切り)</p>
-    </section>
-
-    <!-- 右カラム：ログ -->
-    <aside class="card right-card" aria-labelledby="log-title">
-      <div class="card-head">
-        <h2 id="log-title" class="card-title">ログ</h2>
-        <button id="btn-clear-log" class="btn-clear" aria-label="ログ全削除">全削除</button>
-      </div>
-
-      <ul id="log-list" class="log-list" aria-live="polite">
-        <!-- ログ項目をここに追加 -->
-      </ul>
-
-      <div class="legend">
-        <span class="legend-item badge crit">大成功 (12)</span>
-        <span class="legend-item badge fumble">ファンブル (2)</span>
-        <span class="legend-item badge streak">連続</span>
-      </div>
-    </aside>
+    <footer class="footer">
+      <small>オフライン PWA 対応可 — カスタム UI</small>
+    </footer>
   </main>
-
-  <footer class="footer">
-    <small>オフライン対応 PWA に対応できます。SHUU-123 用カスタム UI。</small>
-  </footer>
 
   <script src="app.js"></script>
 </body>
