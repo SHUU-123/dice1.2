@@ -69,6 +69,7 @@ select,input{background:transparent;border:1px solid rgba(255,255,255,0.06);padd
 .pager{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
 .pager button{padding:6px 10px;border-radius:6px;background:rgba(255,255,255,0.03);color:var(--accent);border:1px solid rgba(255,255,255,0.02);cursor:pointer}
 .pager button.active{background:linear-gradient(90deg,#06b6d4,#0ea5a7);color:#022;font-weight:700;box-shadow:0 6px 14px rgba(2,6,23,0.5)}
+.pager button:disabled{opacity:0.45;cursor:not-allowed}
 .pager .nav-arrow{font-weight:700}
 @media (max-width:600px){
   .log-right{align-items:flex-start}
