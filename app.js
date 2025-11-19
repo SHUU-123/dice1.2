@@ -1,8 +1,13 @@
-// app.js (修正版: 2d6以外も個別出目を強調表示)
+// app.js
+// UIを画像(左プリセット + 右ログ)に戻したバージョン
+// 機能: 2d6 / 2d6+修正（ページ分割） / 1dN プルダウン / カスタムダイス / ログ(localStorage)
+// 2d6: 大成功(12), ファンブル(2), 連続表示（ダブル表記は表示しない）
+// 非2d6も個別出目を強調表示
+
 (function(){
   const el = id => document.getElementById(id);
 
-  // ----- utils -----
+  // --- utils ---
   function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
   function rollNdM(n,m){
     const a=[];
@@ -12,15 +17,15 @@
   function nowStr(){ return new Date().toLocaleString(); }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-  // ----- storage -----
-  const STORAGE_KEY = 'sw25_logs_v2';
-  function getLogs(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }catch(e){ return []; } }
-  function saveLogs(logs){ localStorage.setItem(STORAGE_KEY, JSON.stringify(logs)); }
+  // --- storage ---
+  const KEY = 'sw25_logs_ui_v3';
+  function getLogs(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
+  function saveLogs(arr){ localStorage.setItem(KEY, JSON.stringify(arr)); }
   function addLog(entry){ const logs=getLogs(); logs.unshift(entry); saveLogs(logs); renderLogs(); }
   function deleteLogAt(i){ const logs=getLogs(); logs.splice(i,1); saveLogs(logs); renderLogs(); }
-  function clearLogs(){ localStorage.removeItem(STORAGE_KEY); renderLogs(); }
+  function clearLogs(){ localStorage.removeItem(KEY); renderLogs(); }
 
-  // ----- streak (連続判定) -----
+  // --- streak for 2d6 ---
   function computeStreakFor2d6(rawTotal){
     const logs = getLogs();
     let cnt = 0;
@@ -32,17 +37,14 @@
     return cnt + 1;
   }
 
-  // ----- helper: ロール配列を HTML 化 -----
-  // rolls: 配列。数値または文字列を混在させていることを想定。
+  // --- render rolls array to HTML (numbers emphasized as .die) ---
   function rollsToHtml(rolls){
-    // 例: [3,5,"(+3)"] -> <div class="dice"><div class="die">3</div>...<div class="expr-mod">(+3)</div></div>
     let html = '<div class="dice">';
     for(const r of rolls){
+      // treat numeric-like strings or numbers as die
       if(typeof r === 'number' || (!isNaN(Number(r)) && String(r).trim() !== '')){
-        // 数値に見えるものは die として強調
         html += `<div class="die">${escapeHtml(String(r))}</div>`;
       } else {
-        // 数字でないものは修正値などの補助表記
         html += `<div class="expr-mod">${escapeHtml(String(r))}</div>`;
       }
     }
@@ -50,7 +52,7 @@
     return html;
   }
 
-  // ----- rendering logs (ダブル表記なし、非2d6でも出目強調) -----
+  // --- render logs ---
   function renderLogs(){
     const list = el('log-list');
     list.innerHTML = '';
@@ -67,50 +69,45 @@
       const li = document.createElement('li');
       li.className = 'log-item';
 
-      // 左カラム（式・メタ）
-      let leftHtml = `<div class="log-left"><strong>${escapeHtml(lg.expr)}</strong>`;
+      let left = `<div class="log-left"><strong>${escapeHtml(lg.expr)}</strong>`;
 
       if(lg.type === '2d6'){
-        const d1 = lg.rolls[0], d2 = lg.rolls[1];
-        leftHtml += `<div class="log-meta">`;
-        if(lg.rawTotal === 12) leftHtml += `<span class="badge crit">大成功</span>`;
-        else if(lg.rawTotal === 2) leftHtml += `<span class="badge fumble">ファンブル</span>`;
-        if(lg.streak && lg.streak > 1) leftHtml += `<span class="badge streak">連続 ${lg.streak} 回</span>`;
-        leftHtml += `</div>`;
+        left += `<div class="log-meta">`;
+        if(lg.rawTotal === 12) left += `<span class="badge crit">大成功</span>`;
+        else if(lg.rawTotal === 2) left += `<span class="badge fumble">ファンブル</span>`;
+        if(lg.streak && lg.streak > 1) left += `<span class="badge streak">連続 ${lg.streak} 回</span>`;
+        left += `</div>`;
 
-        // 2d6 の出目表示（従来の見た目）
-        leftHtml += `<div class="dice">`;
-        leftHtml += `<div class="die">${escapeHtml(String(d1))}</div>`;
-        leftHtml += `<div class="die">${escapeHtml(String(d2))}</div>`;
-        if(lg.modifier) leftHtml += `<div class="expr-mod">+ ${escapeHtml(String(lg.modifier))}</div>`;
-        leftHtml += `</div>`;
+        left += `<div class="dice">`;
+        left += `<div class="die">${escapeHtml(String(lg.rolls[0]))}</div>`;
+        left += `<div class="die">${escapeHtml(String(lg.rolls[1]))}</div>`;
+        if(lg.modifier) left += `<div class="expr-mod">+ ${escapeHtml(String(lg.modifier))}</div>`;
+        left += `</div>`;
 
-        leftHtml += `<div class="log-meta">生合計: ${lg.rawTotal} — 最終合計: ${lg.total} — ${lg.time}</div>`;
+        left += `<div class="log-meta">生合計: ${lg.rawTotal} — 最終合計: ${lg.total} — ${lg.time}</div>`;
       } else {
-        // 非2d6（1dN やカスタム）：個別ダイスを強調表示する
-        // lg.rolls は配列。中には数値や "(+3)" のような文字列が混ざることがある。
-        leftHtml += `<div class="log-meta">${escapeHtml(lg.time)}</div>`;
-        leftHtml += rollsToHtml(lg.rolls);
-        leftHtml += `<div class="log-meta">合計: ${lg.total}</div>`;
+        left += `<div class="log-meta">${escapeHtml(lg.time)}</div>`;
+        left += rollsToHtml(lg.rolls);
+        left += `<div class="log-meta">合計: ${lg.total}</div>`;
       }
 
-      leftHtml += `</div>`; // .log-left close
+      left += `</div>`;
 
-      const rightHtml = `<div class="log-right"><button class="log-del" data-idx="${idx}">削除</button></div>`;
-
-      li.innerHTML = leftHtml + rightHtml;
+      const right = `<div class="log-right"><button class="log-del" data-idx="${idx}">削除</button></div>`;
+      li.innerHTML = left + right;
       list.appendChild(li);
     });
 
+    // attach delete handlers
     Array.from(list.querySelectorAll('.log-del')).forEach(btn=>{
-      btn.addEventListener('click', e=>{
+      btn.addEventListener('click', ()=>{
         const i = Number(btn.dataset.idx);
         deleteLogAt(i);
       });
     });
   }
 
-  // ----- mod pages config -----
+  // --- modifiers (page groups) ---
   const modGroupsSpec = [
     { title: '+3〜+20', from: 3, to: 20 },
     { title: '+21〜+40', from: 21, to: 40 },
@@ -118,69 +115,70 @@
     { title: '+61〜+80', from: 61, to: 80 },
     { title: '+81〜+100', from: 81, to: 100 },
   ];
-  let currentModPage = 0;
+  let currentPage = 0;
 
-  // render current mod page: 各ページに 2d6 を先頭に表示する
-  function renderModPage(){
+  // render current palette (match image: show 2d6 and modifiers for page)
+  function renderPresetGrid(){
     const grid = el('preset-grid');
     grid.innerHTML = '';
-    const spec = modGroupsSpec[currentModPage];
+    const spec = modGroupsSpec[currentPage];
 
-    // どのページでも 2d6 ボタンを先頭に表示
-    const btn2d6 = document.createElement('button');
-    btn2d6.className = 'preset-btn';
-    btn2d6.textContent = '2d6';
-    btn2d6.addEventListener('click', ()=>roll2d6(0));
-    grid.appendChild(btn2d6);
+    // always show 2d6 button first
+    const btn2 = document.createElement('button');
+    btn2.className = 'preset-btn';
+    btn2.textContent = '2d6';
+    btn2.addEventListener('click', ()=>roll2d6(0));
+    grid.appendChild(btn2);
 
-    // create modifiers in the page's range
-    for(let v = spec.from; v <= spec.to; v++){
-      const btn = document.createElement('button');
-      btn.className = 'preset-btn';
-      btn.textContent = `2d6+${v}`;
-      btn.addEventListener('click', ()=>roll2d6(v));
-      grid.appendChild(btn);
+    // create modifiers for that page
+    for(let v=spec.from; v<=spec.to; v++){
+      const b = document.createElement('button');
+      b.className = 'preset-btn';
+      b.textContent = `2d6+${v}`;
+      b.addEventListener('click', ()=>roll2d6(v));
+      grid.appendChild(b);
     }
-
-    updatePager();
+    updatePagerUI();
   }
 
-  // build pager buttons
-  function buildPager(){
+  // build pager UI (buttons)
+  function buildPagerUI(){
     const nav = el('mod-page-nav');
     nav.innerHTML = '';
     const prev = document.createElement('button');
     prev.className = 'page-nav';
     prev.textContent = '◀';
-    prev.addEventListener('click', ()=>{ if(currentModPage>0){ currentModPage--; renderModPage(); } });
+    prev.addEventListener('click', ()=>{ if(currentPage>0){ currentPage--; renderPresetGrid(); } });
     nav.appendChild(prev);
 
     modGroupsSpec.forEach((g,i)=>{
-      const b = document.createElement('button');
-      b.className = 'page-btn';
-      b.textContent = `${i+1}`;
-      b.addEventListener('click', ()=>{ currentModPage = i; renderModPage(); });
-      nav.appendChild(b);
+      const btn = document.createElement('button');
+      btn.className = 'page-btn';
+      btn.textContent = String(i+1);
+      btn.title = g.title;
+      btn.addEventListener('click', ()=>{ currentPage = i; renderPresetGrid(); });
+      nav.appendChild(btn);
     });
 
     const next = document.createElement('button');
     next.className = 'page-nav';
     next.textContent = '▶';
-    next.addEventListener('click', ()=>{ if(currentModPage < modGroupsSpec.length-1){ currentModPage++; renderModPage(); } });
+    next.addEventListener('click', ()=>{ if(currentPage < modGroupsSpec.length-1){ currentPage++; renderPresetGrid(); } });
     nav.appendChild(next);
+    updatePagerUI();
   }
 
-  function updatePager(){
+  function updatePagerUI(){
     const nav = el('mod-page-nav');
     Array.from(nav.querySelectorAll('.page-btn')).forEach(btn=>{
-      const n = Number(btn.textContent)-1;
-      btn.classList.toggle('active', n === currentModPage);
+      const n = Number(btn.textContent) - 1;
+      btn.classList.toggle('active', n === currentPage);
     });
     const allNav = nav.querySelectorAll('.page-nav');
     if(allNav.length >= 2){
       const [prev,next] = allNav;
-      prev.disabled = (currentModPage <= 0);
-      next.disabled = (currentModPage >= modGroupsSpec.length-1);
+      prev.disabled = currentPage <= 0;
+      next.disabled = currentPage >= modGroupsSpec.length-1;
       prev.style.opacity = prev.disabled?0.35:1;
       next.style.opacity = next.disabled?0.35:1;
       prev.style.cursor = prev.disabled?'default':'pointer';
@@ -188,7 +186,7 @@
     }
   }
 
-  // ----- roll handlers -----
+  // --- roll handlers ---
   function roll2d6(mod){
     const rolls = rollNdM(2,6);
     const raw = rolls[0] + rolls[1];
@@ -217,7 +215,7 @@
     });
   }
 
-  // parse simple custom expressions (support multiple comma separated)
+  // parse custom strings (support multiple comma-separated)
   function parseAndRollCustom(text){
     if(!text || !text.trim()) return;
     const parts = text.split(',').map(s=>s.trim()).filter(Boolean);
@@ -232,13 +230,13 @@
           const rolls = rollNdM(Math.abs(n), sides);
           const sum = rolls.reduce((a,b)=>a+b,0) * (n<0?-1:1);
           const total = sum + mod;
-          // 表示のため、修正値は文字列 "(+m)" の形で rolls 配列に追加
-          const displayRolls = rolls.slice();
-          if(mod !== 0) displayRolls.push((mod>0?'+':'') + String(mod));
+          // display: append modifier as "+m" or "-m" string
+          const display = rolls.slice();
+          if(mod !== 0) display.push((mod>0?'+':'')+String(mod));
           addLog({
             expr: p,
             type: 'other',
-            rolls: displayRolls,
+            rolls: display,
             total,
             time: nowStr()
           });
@@ -248,7 +246,7 @@
             const sides = Number(m2[1]);
             roll1dN(sides);
           } else {
-            // 解析できない形式はそのままログに残す（出目強調はしない）
+            // unknown format: store literal
             addLog({
               expr: p,
               type: 'other',
@@ -259,14 +257,14 @@
           }
         }
       }catch(e){
-        console.error('custom parse error', e);
+        console.error('parse error', e);
       }
     }
   }
 
-  // ----- init UI and events -----
+  // --- init UI ---
   function init(){
-    // fill 1dN dropdown
+    // populate 1dN dropdown
     const dd = el('dropdown-d');
     for(let i=1;i<=100;i++){
       const opt = document.createElement('option');
@@ -275,34 +273,17 @@
       dd.appendChild(opt);
     }
 
-    // buttons
-    el('btn-roll-dropdown').addEventListener('click', ()=>{
-      const n = Number(dd.value);
-      if(n>0) roll1dN(n);
-    });
+    el('btn-roll-dropdown').addEventListener('click', ()=>{ const n = Number(dd.value); if(n>0) roll1dN(n); });
+    el('btn-roll-custom').addEventListener('click', ()=>{ parseAndRollCustom(el('custom-input').value); el('custom-input').value = ''; });
+    el('btn-clear-log').addEventListener('click', ()=>{ if(confirm('ログを全削除します。よろしいですか？')) clearLogs(); });
 
-    el('btn-roll-custom').addEventListener('click', ()=>{
-      parseAndRollCustom(el('custom-input').value);
-      el('custom-input').value = '';
-    });
-
-    el('btn-clear-log').addEventListener('click', ()=>{
-      if(confirm('ログを全削除します。よろしいですか？')) clearLogs();
-    });
-
-    // pager and presets
-    buildPager();
-    renderModPage();
-
-    // initial logs render
+    buildPagerUI();
+    renderPresetGrid();
     renderLogs();
 
-    // keyboard: Enter on custom input triggers roll
+    // Enter in custom input triggers roll
     el('custom-input').addEventListener('keydown', e=>{
-      if(e.key === 'Enter') {
-        parseAndRollCustom(el('custom-input').value);
-        el('custom-input').value = '';
-      }
+      if(e.key === 'Enter'){ parseAndRollCustom(el('custom-input').value); el('custom-input').value = ''; }
     });
   }
 
